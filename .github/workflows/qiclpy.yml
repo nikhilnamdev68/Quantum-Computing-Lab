@@ -1,29 +1,30 @@
-name: qcl
-permissions:
-  contents: read
+name: Lint (nbqa + pylint)
 
-on: [push]
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
 jobs:
-  build:
+  lint:
+    name: Run nbqa + pylint via uv
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-      - name: Install dependencies
-        run: |
-          uv sync
-          uv add nbqa pylint
 
-          
-      - name: Analysing the code with pylint
+    steps:
+      - name: 🧱 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Install uv
         run: |
-          uv run pylint --disable=import-error $(git ls-files '*.py' | xargs)
-          #uv run pylint $(git ls-files '*.py')
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 📦 Sync environment
+        run: uv sync
+
+      - name: 🧹 Run linting (nbqa + pylint)
+        run: |
+          chmod +x scripts/lint.sh
+          ./scripts/lint.sh
+
